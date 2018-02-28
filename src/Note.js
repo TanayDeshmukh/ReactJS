@@ -1,50 +1,61 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import {bindActionCreators} from 'redux'; 
+import {addNote, editNote} from './actions/index';
 
 class Note extends React.Component{
     constructor(props){
         super(props);
-        this.actionTaken = this.actionTaken.bind(this);
     }
 
-    actionTaken(){
-
-        var title = document.getElementById('title').value;
-        var details = document.getElementById('details').value;
-
-        var item = this.props.item?this.props.item:null;
-        if(item){
-            item.title = title;
-            item.details = details;
-        }
-        console.log(this.props.action);
-
-        if(this.props.action === 'Add'){
-            let newItem = {id:undefined,title:title, details:details, date:''};
-            this.props.addFunction(newItem);    
+    buttonClicked(){
+        if(this.props.action==='ADD_NOTE'){
+            var note = {
+                'id': this.props.incrementKey(),
+                'title': document.getElementById('title').value, 
+                'details': document.getElementById('details').value,
+                'date': ''
+            }
+            this.props.addNote(note);
         }
         else{
-            this.props.editFunction(item);
-       }
-       this.props.toggle();
+            var note = {
+                ...this.props.singleNote,
+                'title': document.getElementById('title').value, 
+                'details': document.getElementById('details').value
+            }
+            this.props.editNote(note);
+        }
+        this.props.toggle()
     }
 
     render(){
-        console.log('-----------------------------------------'+this.props.toggle);
         return(
             <div>
                 <div>
-                    <input type='text' id='title' type='text' placeholder='Title' className='title-input' defaultValue={this.props.item?this.props.item.title:''}/>
+                    <input type='text' id='title' type='text' className='title-input' defaultValue={this.props.action==='EDIT_NOTE'?this.props.singleNote.title:''}/>
                 </div>
                 <div>
-                    <textarea id='details' rows='5' cols='50' placeholder='Note' className='note-input' defaultValue={this.props.item?this.props.item.details:''}/>
+                    <textarea id='details' rows='5' cols='50' className='note-input' defaultValue={this.props.action==='EDIT_NOTE'?this.props.singleNote.details:''}/>
                 </div>
                 <div>
-                    <button onClick={this.actionTaken}>{this.props.action}</button>
-                    <button onClick={this.props.toggle} >Cancle</button>
+                    <button onClick={() => this.buttonClicked() }>{this.props.action}</button>
+                    <button onClick={()=>this.props.toggle()} >Cancle</button>
                 </div>
             </div>
         );
     }
 }
 
-export default Note;
+function mapStateToProps(state){
+    return{
+        singleNote: state.notes.singleNote
+    }
+}
+
+function mapDisplatchToProps(dispatch){
+    return bindActionCreators({ addNote, editNote }, dispatch);
+
+}
+
+export default connect(mapStateToProps, mapDisplatchToProps)(Note);
